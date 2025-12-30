@@ -512,15 +512,15 @@ draw();
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <script>
-  // Registro do Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('PWA Ativo!', reg))
-        .catch(err => console.log('Erro no PWA:', err));
+        .then(reg => console.log('Service Worker registrado com sucesso!'))
+        .catch(err => console.log('Erro ao registrar Service Worker:', err));
     });
   }
 </script>
 </body>
 
 </html>
+
