@@ -4,9 +4,11 @@ const ASSETS = [
   './index.html',
   './manifest.json',
   './icon-194.png',
-  './icon-512.png'
+  './icon-512.png',
+  './assets/player_ship.png',
+  './assets/meteor.png',
+  './assets/boss_meteor.png'
 ];
-
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
