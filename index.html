@@ -22,9 +22,12 @@
         #boss-ui { position: absolute; top: 180px; left: 50%; transform: translateX(-50%); width: 200px; height: 10px; border: 2px solid #fff; display: none; z-index: 5; }
         #boss-hp { width: 100%; height: 100%; background: #f00; transition: width 0.2s; }
         #voice-start-hint { font-size: 12px; color: #fff; margin-top: 10px; opacity: 0.7; }
+        #pause-screen { background: rgba(0,0,0,0.7); display: none; }
     </style>
 </head>
-<body onclick="initAudio()"> <div id="intro-screen" class="overlay">
+<body onclick="initAudio()"> 
+    
+    <div id="intro-screen" class="overlay">
         <div class="intro-box">
             <h1>ALERTA TERRA!</h1>
             <p id="intro-text-content" class="intro-text">
@@ -45,10 +48,16 @@
         <button class="btn-menu" onclick="showHelp()">REGRAS</button>
     </div>
 
+    <div id="pause-screen" class="overlay">
+        <h1>PAUSADO</h1>
+        <button class="btn-menu" onclick="togglePause()">CONTINUAR</button>
+    </div>
+
     <div id="help-screen" class="overlay" style="display:none">
         <h1>REGRAS</h1>
         <p>🚀 MOVIMENTAÇÃO: Setas ou Arrastar</p>
         <p>🛡️ ESCUDO: Suporta 1 impacto</p>
+        <p>⏸️ PAUSA: Tecla P ou ESC</p>
         <p>👾 ATMOSFERA: Meteoros pequenos podem passar, mas o BOSS não!</p>
         <button class="btn-menu" onclick="hideHelp()">SAIR</button>
     </div>
@@ -83,14 +92,13 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// ASSETS
 const imgPlayerV1 = new Image(); imgPlayerV1.src = 'assets/player_ship.png';
 const imgMeteor = new Image(); imgMeteor.src = 'assets/meteor.png';
 const imgBoss = new Image(); imgBoss.src = 'assets/boss_meteor.png';
 
 let totalCoins = parseInt(localStorage.getItem('sg_coins_save')) || 0;
 let shopUpgrades = JSON.parse(localStorage.getItem('sg_upgrades_save')) || { shield: false, fast: false, shipLevel: 1 };
-let score = 0, level = 1, lives = 3, gameOver = false, gameStarted = false;
+let score = 0, level = 1, lives = 3, gameOver = false, gameStarted = false, isPaused = false;
 let frameCount = 0, sessionCoins = 0, keys = {};
 let hasSpoken = false;
 
@@ -105,7 +113,6 @@ const player = {
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-// VOZ DA INTRODUÇÃO (CORREÇÃO CIRÚRGICA)
 function initAudio() {
     if (!hasSpoken) {
         speakIntro();
@@ -116,22 +123,30 @@ function initAudio() {
 }
 
 function speakIntro() {
-    window.speechSynthesis.cancel(); // Limpa filas anteriores
+    window.speechSynthesis.cancel(); 
     const text = document.getElementById('intro-text-content').innerText;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'pt-BR';
-    utterance.rate = 1.0;
+    utterance.rate = 1.2; 
     window.speechSynthesis.speak(utterance);
 }
 
-function playSound(freq, duration) {
+function playSound(freq, duration, type='sine') {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
+    osc.type = type;
     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
     gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
     osc.connect(gain); gain.connect(audioCtx.destination);
     osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+
+function togglePause() {
+    if (!gameStarted || gameOver) return;
+    isPaused = !isPaused;
+    document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none';
 }
 
 class Enemy {
@@ -157,7 +172,7 @@ function triggerGameOver(msg) {
 }
 
 function update() {
-    if (!gameStarted || gameOver) return;
+    if (!gameStarted || gameOver || isPaused) return;
     frameCount++;
     if (player.invul > 0) player.invul--;
 
@@ -184,22 +199,19 @@ function update() {
 
     enemies.forEach((e, i) => {
         e.y += e.speed;
-        
-        // REGRA DE IMPACTO: Só o Boss causa Game Over ao passar
         if (e.y > canvas.height) {
-            if (e.isBoss) {
-                triggerGameOver("O BOSS DESTRUIU A TERRA!");
-            } else {
-                enemies.splice(i, 1); // Meteoros comuns passam sem problemas
-            }
+            if (e.isBoss) triggerGameOver("O BOSS DESTRUIU A TERRA!");
+            else enemies.splice(i, 1);
         }
 
         bullets.forEach((b, bi) => {
             if (b.x > e.x && b.x < e.x + e.size && b.y > e.y && b.y < e.y + e.size) {
                 e.hp -= player.damage;
                 bullets.splice(bi, 1);
+                playSound(150, 0.1, 'sawtooth'); // Som de impacto
                 if (e.isBoss) document.getElementById('boss-hp').style.width = (e.hp/e.maxHp*100) + "%";
                 if (e.hp <= 0) {
+                    playSound(80, 0.3, 'square'); // Som de explosão
                     if(e.isBoss) document.getElementById('boss-ui').style.display = 'none';
                     sessionCoins += e.isBoss ? 50 : 2;
                     score += e.isBoss ? 500 : 10;
@@ -214,10 +226,12 @@ function update() {
             if (player.hasShield) {
                 player.hasShield = false;
                 player.invul = 60;
+                playSound(600, 0.2);
                 if (!e.isBoss) enemies.splice(i, 1);
             } else {
                 lives--;
                 player.invul = 100;
+                playSound(100, 0.5, 'triangle');
                 document.getElementById('lives').innerText = lives;
                 if (e.isBoss) e.y -= 100; else enemies.splice(i, 1);
                 if (lives <= 0) triggerGameOver("SUA NAVE FOI DESTRUÍDA!");
@@ -258,9 +272,12 @@ function buyUpgrade(type, price) {
     } else alert("💎 Insuficiente!");
 }
 
-window.addEventListener('keydown', e => keys[e.code] = true);
+window.addEventListener('keydown', e => {
+    if (e.code === 'KeyP' || e.code === 'Escape') togglePause();
+    keys[e.code] = true;
+});
 window.addEventListener('keyup', e => keys[e.code] = false);
-canvas.addEventListener('touchmove', e => { if(gameStarted) { player.x = e.touches[0].clientX - player.w/2; player.y = e.touches[0].clientY - player.h/2; } e.preventDefault(); }, {passive: false});
+canvas.addEventListener('touchmove', e => { if(gameStarted && !isPaused) { player.x = e.touches[0].clientX - player.w/2; player.y = e.touches[0].clientY - player.h/2; } e.preventDefault(); }, {passive: false});
 draw();
 </script>
 </body>
