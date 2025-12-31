@@ -106,6 +106,7 @@ let shopUpgrades = JSON.parse(localStorage.getItem('sg_upgrades_save')) || { shi
 let score = 0, level = 1, lives = 3, gameOver = false, gameStarted = false, isPaused = false;
 let frameCount = 0, sessionCoins = 0, keys = {};
 let hasSpoken = false;
+let iceEffectTimer = 0;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -155,6 +156,27 @@ function togglePause() {
     document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none';
 }
 
+class PowerUp {
+    constructor(type) {
+        this.type = type; // 'weapon' ou 'ice'
+        this.w = 40; this.h = 40;
+        this.x = Math.random() * (canvas.width - this.w);
+        this.y = -this.h;
+        this.speed = 2;
+        this.color = type === 'weapon' ? '#f0f' : '#0ff';
+        this.label = type === 'weapon' ? 'UP' : 'ICE';
+    }
+    draw() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.strokeStyle = '#fff';
+        ctx.strokeRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(this.label, this.x + 10, this.y + 25);
+    }
+}
+
 class Enemy {
     constructor(isBoss = false) {
         this.isBoss = isBoss;
@@ -167,7 +189,7 @@ class Enemy {
     }
 }
 
-let bullets = [], enemies = [];
+let bullets = [], enemies = [], powerups = [];
 
 function triggerGameOver(msg) {
     gameOver = true;
@@ -185,6 +207,7 @@ function update() {
     if (!gameStarted || gameOver || isPaused) return;
     frameCount++;
     if (player.invul > 0) player.invul--;
+    if (iceEffectTimer > 0) iceEffectTimer--;
 
     if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
     if (keys['ArrowRight'] && player.x < canvas.width - player.w) player.x += player.speed;
@@ -194,11 +217,17 @@ function update() {
     if (player.fireTimer <= 0) {
         if (player.gunMode === 1) createBullet(0);
         if (player.gunMode === 2) { createBullet(-15); createBullet(15); }
-        if (player.gunMode === 3) { createBullet(-20); createBullet(0); createBullet(20); }
+        if (player.gunMode >= 3) { createBullet(-20); createBullet(0); createBullet(20); }
         player.fireTimer = player.fireRate;
         playSound(400, 0.1);
     }
     player.fireTimer--;
+
+    // Lógica de spawn de cards antes do Boss (Boss aparece a cada frame múltiplo de 1000)
+    let nextBossFrame = (Math.floor(frameCount / 1000) + 1) * 1000;
+    if (frameCount === nextBossFrame - 200) powerups.push(new PowerUp('weapon'));
+    if (frameCount === nextBossFrame - 150) powerups.push(new PowerUp('weapon'));
+    if (frameCount === nextBossFrame - 100) powerups.push(new PowerUp('ice'));
 
     if (frameCount % 60 === 0) {
         if (level % 3 === 0 && !enemies.some(e => e.isBoss)) {
@@ -207,8 +236,23 @@ function update() {
         } else enemies.push(new Enemy());
     }
 
+    powerups.forEach((p, i) => {
+        p.y += p.speed;
+        if (player.x < p.x + p.w && player.x + player.w > p.x && player.y < p.y + p.h && player.y + player.h > p.y) {
+            if (p.type === 'weapon') {
+                player.gunMode++;
+                playSound(800, 0.2);
+            } else {
+                iceEffectTimer = 180; // 3 segundos
+                playSound(300, 0.3);
+            }
+            powerups.splice(i, 1);
+        }
+        if (p.y > canvas.height) powerups.splice(i, 1);
+    });
+
     enemies.forEach((e, i) => {
-        e.y += e.speed;
+        if (iceEffectTimer <= 0) e.y += e.speed;
         if (e.y > canvas.height) {
             if (e.isBoss) triggerGameOver("O BOSS DESTRUIU A TERRA!");
             else enemies.splice(i, 1);
@@ -242,8 +286,13 @@ function update() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (iceEffectTimer > 0) {
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
     if (player.invul % 10 < 5) ctx.drawImage(imgPlayerV1, player.x, player.y, player.w, player.h);
     enemies.forEach(e => { ctx.drawImage(e.isBoss ? imgBoss : imgMeteor, e.x, e.y, e.size, e.size); });
+    powerups.forEach(p => p.draw());
     ctx.fillStyle = "#0ff";
     bullets.forEach(b => ctx.fillRect(b.x-2, b.y, 4, 15));
     update();
