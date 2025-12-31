@@ -7,18 +7,13 @@
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', Courier, monospace; overflow: hidden; touch-action: none; }
         canvas { display: block; }
-        
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
-        
-        /* Nova Tela de Intro */
         #intro-screen { background: url('assets/intro_bg.png') center/cover; }
         .intro-box { background: rgba(0, 0, 0, 0.8); padding: 30px; border: 2px solid #0ff; max-width: 600px; border-radius: 10px; box-shadow: 0 0 20px #0ff; }
         .intro-text { font-size: 18px; line-height: 1.6; color: #0ff; margin-bottom: 25px; text-transform: uppercase; }
-
         h1 { font-size: 42px; color: #0ff; text-shadow: 0 0 20px #0ff; margin-bottom: 20px; }
         .btn-menu { padding: 15px 30px; margin: 10px; font-size: 18px; cursor: pointer; background: #0ff; border: none; font-weight: bold; width: 260px; font-family: 'Courier New'; transition: 0.2s; }
         .btn-menu:hover { background: #fff; box-shadow: 0 0 15px #0ff; }
-        
         #ui { position: absolute; top: 15px; left: 15px; pointer-events: none; width: calc(100% - 30px); display: none; justify-content: space-between; font-weight: bold; font-size: 14px; text-transform: uppercase; z-index: 5; }
         .stat-box { text-shadow: 2px 2px #000; border-left: 4px solid #f00; padding-left: 10px; }
         #shop-coins { color: #ff0; font-size: 20px; margin-bottom: 20px; }
@@ -26,23 +21,18 @@
         .shop-item { background: #111; border: 1px solid #0ff; padding: 10px; font-size: 12px; }
         #boss-ui { position: absolute; top: 180px; left: 50%; transform: translateX(-50%); width: 200px; height: 10px; border: 2px solid #fff; display: none; z-index: 5; }
         #boss-hp { width: 100%; height: 100%; background: #f00; transition: width 0.2s; }
-        #msg-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #fff; text-shadow: 0 0 10px #0ff, 0 0 20px #0ff; font-size: 28px; font-weight: bold; text-align: center; z-index: 200; pointer-events: none; display: none; animation: messageAnim 2.5s ease-out forwards; }
-        
-        @keyframes messageAnim { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -60%) scale(1.2); } }
     </style>
 </head>
 <body>
 
-    <div id="msg-popup"></div>
-
     <div id="intro-screen" class="overlay">
         <div class="intro-box">
             <h1>ALERTA TERRA!</h1>
-            <p class="intro-text">
+            <p id="intro-text-content" class="intro-text">
                 O ano é 2025. Uma chuva de meteoros gigantes ameaça extinguir a vida em nosso planeta. 
                 Como último Guardião Espacial, você é nossa única esperança. 
-                Destrua as ameaças, colete diamantes para melhorar sua nave e não deixe NADA atingir a atmosfera.
-                <br><br><strong>Contamos com você, piloto!</strong>
+                Destrua as ameaças, colete diamantes e não deixe nada atingir a atmosfera.
+                Contamos com você, piloto!
             </p>
             <button class="btn-menu" onclick="closeIntro()">ESTOU PRONTO!</button>
         </div>
@@ -55,41 +45,35 @@
         <button class="btn-menu" onclick="showHelp()">REGRAS</button>
     </div>
 
+    <div id="help-screen" class="overlay" style="display:none">
+        <h1>REGRAS</h1>
+        <p>🚀 MOVIMENTAÇÃO: Setas ou Arrastar</p>
+        <p>🛡️ ESCUDO: Suporta 1 impacto</p>
+        <p>👾 CUIDADO: Se o meteoro tocar o fundo da tela, é Fim de Jogo!</p>
+        <button class="btn-menu" onclick="hideHelp()">SAIR</button>
+    </div>
+
     <div id="shop-screen" class="overlay" style="display:none">
         <h1>HANGAR</h1>
         <div id="shop-coins">MOEDAS: 0</div>
         <div class="shop-grid">
             <div class="shop-item">COMPRAR ESCUDO<br><button onclick="buyUpgrade('shield', 50)">50 💎</button></div>
             <div class="shop-item">TIRO RÁPIDO (PERM)<br><button onclick="buyUpgrade('speed', 100)">100 💎</button></div>
-            <div class="shop-item">NAVE ELITE (2x DANO)<br><button onclick="buyUpgrade('ship2', 500)">500 💎</button></div>
-            <div class="shop-item">NAVE MESTRE (3x DANO)<br><button onclick="buyUpgrade('ship3', 1200)">1200 💎</button></div>
+            <div class="shop-item">NAVE ELITE<br><button onclick="buyUpgrade('ship2', 500)">500 💎</button></div>
+            <div class="shop-item">NAVE MESTRE<br><button onclick="buyUpgrade('ship3', 1200)">1200 💎</button></div>
         </div>
-        <button class="btn-menu" style="background:#f0f" onclick="hideShop()">VOLTAR</button>
-    </div>
-
-    <div id="help-screen" class="overlay" style="display:none">
-        <h1>REGRAS</h1>
-        <p>🚀 MOVIMENTAÇÃO: Arraste ou use setas</p>
-        <p>🛡️ ESCUDO: Protege contra 1 impacto.</p>
-        <p>❄️ GELO: Congela inimigos temporariamente.</p>
-        <p>👾 BOSS: Meteoros gigantes não somem ao bater em você!</p>
-        <button class="btn-menu" onclick="hideHelp()">SAIR</button>
+        <button class="btn-menu" onclick="hideShop()">VOLTAR</button>
     </div>
 
     <div id="game-over" class="overlay" style="display:none">
-        <h1 id="over-title" style="color:#f00">FIM DE MISSÃO</h1>
+        <h1 style="color:#f00">FIM DE MISSÃO</h1>
         <p id="over-msg"></p>
         <button class="btn-menu" onclick="location.reload()">REINICIAR</button>
     </div>
 
     <div id="ui">
-        <div class="stat-box">
-            VIDAS: <span id="lives">3</span> | LEVEL: <span id="game-level">1</span><br>
-            💎 <span id="current-coins">0</span> | ESCUDO: <span id="shield-status">OFF</span>
-        </div>
-        <div class="stat-box" style="text-align: right; border-right: 4px solid #0ff; padding-right: 10px; border-left:none;">
-            SCORE:<br><span id="score">0</span>
-        </div>
+        <div class="stat-box">VIDAS: <span id="lives">3</span> | LVL: <span id="game-level">1</span><br>💎 <span id="current-coins">0</span></div>
+        <div class="stat-box" style="border-left:none; border-right:4px solid #0ff; text-align:right;">SCORE:<br><span id="score">0</span></div>
     </div>
 
     <div id="boss-ui"><div id="boss-hp"></div></div>
@@ -99,53 +83,44 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// IMAGENS
+// ASSETS
 const imgPlayerV1 = new Image(); imgPlayerV1.src = 'assets/player_ship.png';
-const imgPlayerV2 = new Image(); imgPlayerV2.src = 'assets/player_ship_v2.png';
-const imgPlayerV3 = new Image(); imgPlayerV3.src = 'assets/player_ship_v3.png';
 const imgMeteor = new Image(); imgMeteor.src = 'assets/meteor.png';
 const imgBoss = new Image(); imgBoss.src = 'assets/boss_meteor.png';
 
 let totalCoins = parseInt(localStorage.getItem('sg_coins_save')) || 0;
 let shopUpgrades = JSON.parse(localStorage.getItem('sg_upgrades_save')) || { shield: false, fast: false, shipLevel: 1 };
-
-let score = 0, level = 1, lives = 3, gameOver = false, isPaused = false, gameStarted = false;
-let frameCount = 0, shakeAmount = 0, sessionCoins = 0, victoryFlash = 0;
-let freezeTimer = 0, hasFreezeCharge = false, cloneTimer = 0;
+let score = 0, level = 1, lives = 3, gameOver = false, gameStarted = false;
+let frameCount = 0, sessionCoins = 0, keys = {};
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const player = {
-    x: canvas.width / 2 - 22,
-    y: canvas.height - 120,
-    w: 45, h: 50, speed: 7, 
-    fireRate: shopUpgrades.fast ? 9 : 14, 
-    fireTimer: 0,
-    gunLevel: 1, 
-    hasShield: shopUpgrades.shield,
-    damage: shopUpgrades.shipLevel || 1,
-    currentImg: imgPlayerV1,
-    invul: 0 // Tempo de invulnerabilidade após bater
+    x: canvas.width / 2 - 22, y: canvas.height - 120, w: 45, h: 50,
+    speed: 7, fireRate: shopUpgrades.fast ? 9 : 14, fireTimer: 0,
+    damage: shopUpgrades.shipLevel || 1, invul: 0, hasShield: shopUpgrades.shield
 };
 
-function updatePlayerStats() {
-    if (shopUpgrades.shipLevel === 2) { player.currentImg = imgPlayerV2; player.damage = 2; }
-    if (shopUpgrades.shipLevel === 3) { player.currentImg = imgPlayerV3; player.damage = 3; }
-}
-updatePlayerStats();
-
-let bullets = [], enemies = [], powerups = [], stars = [];
-const keys = {};
-
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(freq, duration, type='triangle') {
+
+// VOZ DA INTRODUÇÃO
+function speakIntro() {
+    const text = document.getElementById('intro-text-content').innerText;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+}
+
+// Inicia narração ao carregar
+window.onload = () => { setTimeout(speakIntro, 1000); };
+
+function playSound(freq, duration) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = type;
     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
     gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
     osc.connect(gain); gain.connect(audioCtx.destination);
     osc.start(); osc.stop(audioCtx.currentTime + duration);
@@ -160,10 +135,10 @@ class Enemy {
         this.hp = isBoss ? (level * 60) : Math.ceil(level * 0.5);
         this.maxHp = this.hp;
         this.speed = isBoss ? 0.6 : (1.4 + (level * 0.35));
-        this.rotation = 0;
-        this.rotSpeed = (Math.random() - 0.5) * 0.04;
     }
 }
+
+let bullets = [], enemies = [];
 
 function triggerGameOver(msg) {
     gameOver = true;
@@ -174,15 +149,16 @@ function triggerGameOver(msg) {
 }
 
 function update() {
-    if (!gameStarted || isPaused || gameOver) return;
+    if (!gameStarted || gameOver) return;
     frameCount++;
     if (player.invul > 0) player.invul--;
 
-    // Movimentação
+    // MOVIMENTAÇÃO COMPLETA (Eixo X e Y)
     if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
     if (keys['ArrowRight'] && player.x < canvas.width - player.w) player.x += player.speed;
+    if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
+    if (keys['ArrowDown'] && player.y < canvas.height - player.h) player.y += player.speed;
 
-    // Tiro
     if (player.fireTimer <= 0) {
         bullets.push({ x: player.x + player.w/2, y: player.y });
         player.fireTimer = player.fireRate;
@@ -190,23 +166,18 @@ function update() {
     }
     player.fireTimer--;
 
-    // Spawn
     if (frameCount % 60 === 0) {
         if (level % 3 === 0 && !enemies.some(e => e.isBoss)) {
             enemies.push(new Enemy(true));
             document.getElementById('boss-ui').style.display = 'block';
-        } else if (level % 3 !== 0) {
+        } else {
             enemies.push(new Enemy());
         }
     }
 
     enemies.forEach((e, i) => {
         e.y += e.speed;
-        e.rotation += e.rotSpeed;
-
-        if (e.y > canvas.height) {
-            triggerGameOver("O IMPACTO NO PLANETA FOI FATAL!");
-        }
+        if (e.y > canvas.height) triggerGameOver("O PLANETA FOI ATINGIDO!");
 
         // Colisão Bala
         bullets.forEach((b, bi) => {
@@ -219,112 +190,64 @@ function update() {
                     sessionCoins += e.isBoss ? 50 : 2;
                     score += e.isBoss ? 500 : 10;
                     document.getElementById('current-coins').innerText = sessionCoins;
+                    document.getElementById('score').innerText = score;
                     enemies.splice(i, 1);
-                    playSound(150, 0.2, 'sawtooth');
                 }
             }
         });
 
-        // Colisão Player (AJUSTADO CIRURGICAMENTE)
+        // Colisão Nave
         if (player.invul <= 0 && player.x < e.x + e.size && player.x + player.w > e.x && player.y < e.y + e.size && player.y + player.h > e.y) {
             if (player.hasShield) {
                 player.hasShield = false;
                 player.invul = 60;
-                if(!e.isBoss) enemies.splice(i, 1);
+                if (!e.isBoss) enemies.splice(i, 1);
             } else {
                 lives--;
-                player.invul = 100; // Tempo de respiro
+                player.invul = 100;
                 document.getElementById('lives').innerText = lives;
-                shakeAmount = 25;
-                
-                if (e.isBoss) {
-                    e.y -= 150; // Joga o Boss pra cima para não matar o player seguidamente
-                } else {
-                    enemies.splice(i, 1);
-                }
-
-                if (lives <= 0) triggerGameOver("SUA NAVE FOI PULVERIZADA!");
-                else playSound(100, 0.5, 'sawtooth');
+                if (e.isBoss) e.y -= 100; else enemies.splice(i, 1);
+                if (lives <= 0) triggerGameOver("SUA NAVE FOI DESTRUÍDA!");
             }
         }
     });
 
     bullets.forEach((b, i) => { b.y -= 12; if (b.y < -50) bullets.splice(i, 1); });
-    if (frameCount % 1200 === 0) { level++; document.getElementById('game-level').innerText = level; }
+    if (frameCount % 1000 === 0) { level++; document.getElementById('game-level').innerText = level; }
 }
 
 function draw() {
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Player com efeito de piscar se estiver invulnerável
-    if (player.invul % 10 < 5) {
-        if (player.currentImg.complete) ctx.drawImage(player.currentImg, player.x, player.y, player.w, player.h);
-    }
-
-    enemies.forEach(e => {
-        ctx.save();
-        ctx.translate(e.x+e.size/2, e.y+e.size/2);
-        ctx.rotate(e.rotation);
-        ctx.drawImage(e.isBoss ? imgBoss : imgMeteor, -e.size/2, -e.size/2, e.size, e.size);
-        ctx.restore();
-    });
-
-    ctx.fillStyle = "#fff";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (player.invul % 10 < 5) ctx.drawImage(imgPlayerV1, player.x, player.y, player.w, player.h);
+    enemies.forEach(e => { ctx.drawImage(e.isBoss ? imgBoss : imgMeteor, e.x, e.y, e.size, e.size); });
+    ctx.fillStyle = "#0ff";
     bullets.forEach(b => ctx.fillRect(b.x-2, b.y, 4, 15));
-
     update();
     requestAnimationFrame(draw);
 }
 
-function closeIntro() {
-    audioCtx.resume(); // Ativa o som no primeiro clique
-    document.getElementById('intro-screen').style.display = 'none';
-    document.getElementById('start-screen').style.display = 'flex';
-}
-
-function startGame() { 
-    document.getElementById('start-screen').style.display = 'none'; 
-    document.getElementById('ui').style.display = 'flex'; 
-    gameStarted = true; 
-}
-
-function showShop() { 
-    document.getElementById('start-screen').style.display = 'none'; 
-    document.getElementById('shop-screen').style.display = 'flex'; 
-    document.getElementById('shop-coins').innerText = "MOEDAS: " + (totalCoins + sessionCoins); 
-}
-
-function hideShop() { 
-    document.getElementById('shop-screen').style.display = 'none'; 
-    document.getElementById('start-screen').style.display = 'flex'; 
-}
+function closeIntro() { window.speechSynthesis.cancel(); document.getElementById('intro-screen').style.display = 'none'; document.getElementById('start-screen').style.display = 'flex'; audioCtx.resume(); }
+function startGame() { document.getElementById('start-screen').style.display = 'none'; document.getElementById('ui').style.display = 'flex'; gameStarted = true; }
+function showShop() { document.getElementById('start-screen').style.display = 'none'; document.getElementById('shop-screen').style.display = 'flex'; document.getElementById('shop-coins').innerText = "MOEDAS: " + (totalCoins + sessionCoins); }
+function hideShop() { document.getElementById('shop-screen').style.display = 'none'; document.getElementById('start-screen').style.display = 'flex'; }
+function showHelp() { document.getElementById('help-screen').style.display = 'flex'; }
+function hideHelp() { document.getElementById('help-screen').style.display = 'none'; }
 
 function buyUpgrade(type, price) {
-    let currentTotal = totalCoins + sessionCoins;
-    if (currentTotal >= price) {
-        if (sessionCoins >= price) sessionCoins -= price;
-        else { totalCoins -= (price - sessionCoins); sessionCoins = 0; }
-        
+    let current = totalCoins + sessionCoins;
+    if (current >= price) {
+        if (sessionCoins >= price) sessionCoins -= price; else { totalCoins -= (price - sessionCoins); sessionCoins = 0; }
         if (type === 'shield') player.hasShield = true;
-        if (type === 'speed') { shopUpgrades.fast = true; player.fireRate = 9; }
-        if (type.startsWith('ship')) { shopUpgrades.shipLevel = parseInt(type.replace('ship','')); updatePlayerStats(); }
-
+        if (type === 'speed') player.fireRate = 8;
+        if (type.startsWith('ship')) player.damage = parseInt(type.replace('ship',''));
         localStorage.setItem('sg_coins_save', totalCoins);
-        localStorage.setItem('sg_upgrades_save', JSON.stringify(shopUpgrades));
-        alert("Melhoria adquirida!");
         showShop();
-    } else alert("Moedas insuficientes!");
+    } else alert("💎 Insuficiente!");
 }
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
-canvas.addEventListener('touchmove', e => {
-    if (!gameStarted) return;
-    player.x = e.touches[0].clientX - player.w/2;
-    e.preventDefault();
-}, {passive: false});
-
+canvas.addEventListener('touchmove', e => { if(gameStarted) { player.x = e.touches[0].clientX - player.w/2; player.y = e.touches[0].clientY - player.h/2; } e.preventDefault(); }, {passive: false});
 draw();
 </script>
 </body>
