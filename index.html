@@ -17,7 +17,6 @@
         #ui { position: absolute; top: 15px; left: 15px; pointer-events: none; width: calc(100% - 30px); display: none; justify-content: space-between; font-weight: bold; font-size: 14px; text-transform: uppercase; z-index: 5; }
         .stat-box { text-shadow: 2px 2px #000; border-left: 4px solid #f00; padding-left: 10px; }
         
-        /* Estilo do Botão de Gelo */
         #ice-button { 
             position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
             background: rgba(0, 255, 255, 0.3); border: 2px solid #0ff; color: #fff;
@@ -72,6 +71,7 @@
         <p>🚀 MOVIMENTAÇÃO: Setas ou Arrastar</p>
         <p>🛡️ ESCUDO: Suporta 1 impacto</p>
         <p>⏸️ PAUSA: Tecla P ou ESC</p>
+        <p>❄️ CONGELAR: Tecla C ou Espaço</p>
         <button class="btn-menu" onclick="hideHelp()">SAIR</button>
     </div>
 
@@ -100,7 +100,7 @@
         <div class="stat-box" style="border-left:none; border-right:4px solid #0ff; text-align:right;">SCORE:<br><span id="score">0</span></div>
     </div>
 
-    <button id="ice-button" onclick="useIce()">❄️ CONGELAR!</button>
+    <button id="ice-button" onclick="useIce()">❄️ CONGELAR! (C)</button>
 
     <div id="boss-ui"><div id="boss-hp"></div></div>
     <canvas id="gameCanvas"></canvas>
@@ -180,19 +180,18 @@ function useIce() {
 class PowerUp {
     constructor(type) {
         this.type = type;
-        this.w = 45; this.h = 45;
+        this.w = 30; this.h = 30;
         this.x = Math.random() * (canvas.width - this.w);
         this.y = -this.h;
         this.speed = 2.5;
-        this.color = type === 'weapon' ? '#f0f' : '#0ff';
-        this.emoji = type === 'weapon' ? '🚀' : '❄️';
+        this.color = type === 'weapon' ? '#f0f' : (type === 'ice' ? '#0ff' : '#0f0');
+        this.emoji = type === 'weapon' ? '🚀' : (type === 'ice' ? '❄️' : '🛸');
     }
     draw() {
         ctx.save();
         ctx.fillStyle = this.color;
-        // Desenha card arredondado
         ctx.beginPath();
-        const r = 10;
+        const r = 8;
         ctx.moveTo(this.x + r, this.y);
         ctx.arcTo(this.x + this.w, this.y, this.x + this.w, this.y + this.h, r);
         ctx.arcTo(this.x + this.w, this.y + this.h, this.x, this.y + this.h, r);
@@ -203,11 +202,10 @@ class PowerUp {
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.stroke();
-        
         ctx.fillStyle = '#fff';
-        ctx.font = '24px Arial';
+        ctx.font = '18px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(this.emoji, this.x + this.w/2, this.y + 32);
+        ctx.fillText(this.emoji, this.x + this.w/2, this.y + 22);
         ctx.restore();
     }
 }
@@ -252,17 +250,21 @@ function update() {
 
     if (player.fireTimer <= 0) {
         if (player.gunMode === 1) createBullet(0);
-        if (player.gunMode === 2) { createBullet(-15); createBullet(15); }
-        if (player.gunMode >= 3) { createBullet(-20); createBullet(0); createBullet(20); }
+        else if (player.gunMode === 2) { createBullet(-15); createBullet(15); }
+        else if (player.gunMode === 3) { createBullet(-20); createBullet(0); createBullet(20); }
+        else if (player.gunMode >= 4) { createBullet(-25); createBullet(-8); createBullet(8); createBullet(25); }
         player.fireTimer = player.fireRate;
         playSound(400, 0.1);
     }
     player.fireTimer--;
 
-    let nextBossFrame = (Math.floor(frameCount / 1000) + 1) * 1000;
-    if (frameCount === nextBossFrame - 200) powerups.push(new PowerUp('weapon'));
-    if (frameCount === nextBossFrame - 150) powerups.push(new PowerUp('weapon'));
-    if (frameCount === nextBossFrame - 100) powerups.push(new PowerUp('ice'));
+    // Lógica de Spawn: Uma vez por nível (frame 500 do ciclo de 1000)
+    if (frameCount % 1000 === 500) {
+        const r = Math.random();
+        if (r < 0.4) powerups.push(new PowerUp('weapon'));
+        else if (r < 0.7) powerups.push(new PowerUp('clone'));
+        else powerups.push(new PowerUp('ice'));
+    }
 
     if (frameCount % 60 === 0) {
         if (level % 3 === 0 && !enemies.some(e => e.isBoss)) {
@@ -275,8 +277,11 @@ function update() {
         p.y += p.speed;
         if (player.x < p.x + p.w && player.x + player.w > p.x && player.y < p.y + p.h && player.y + player.h > p.y) {
             if (p.type === 'weapon') {
-                player.gunMode++;
+                if (player.gunMode < 4) player.gunMode++;
                 playSound(800, 0.2);
+            } else if (p.type === 'clone') {
+                player.damage++;
+                playSound(900, 0.2, 'square');
             } else {
                 hasIceStock = true;
                 document.getElementById('ice-button').style.display = 'block';
@@ -373,7 +378,7 @@ function buyUpgrade(type, price) {
 
 window.addEventListener('keydown', e => { 
     if (e.code === 'KeyP' || e.code === 'Escape') togglePause(); 
-    if (e.code === 'Space') useIce();
+    if (e.code === 'Space' || e.code === 'KeyC') useIce();
     keys[e.code] = true; 
 });
 window.addEventListener('keyup', e => keys[e.code] = false);
