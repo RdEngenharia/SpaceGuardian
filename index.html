@@ -16,6 +16,16 @@
         .btn-menu:hover { background: #fff; box-shadow: 0 0 15px #0ff; }
         #ui { position: absolute; top: 15px; left: 15px; pointer-events: none; width: calc(100% - 30px); display: none; justify-content: space-between; font-weight: bold; font-size: 14px; text-transform: uppercase; z-index: 5; }
         .stat-box { text-shadow: 2px 2px #000; border-left: 4px solid #f00; padding-left: 10px; }
+        
+        /* Estilo do Botão de Gelo */
+        #ice-button { 
+            position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 255, 255, 0.3); border: 2px solid #0ff; color: #fff;
+            padding: 10px 20px; border-radius: 20px; cursor: pointer; display: none;
+            pointer-events: auto; font-weight: bold; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; box-shadow: 0 0 15px #0ff; } 100% { opacity: 0.7; } }
+
         #shop-coins { color: #ff0; font-size: 20px; margin-bottom: 20px; }
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; max-height: 60vh; overflow-y: auto; padding: 10px; }
         .shop-item { background: #111; border: 1px solid #0ff; padding: 10px; font-size: 11px; display: flex; flex-direction: column; align-items: center; }
@@ -90,6 +100,8 @@
         <div class="stat-box" style="border-left:none; border-right:4px solid #0ff; text-align:right;">SCORE:<br><span id="score">0</span></div>
     </div>
 
+    <button id="ice-button" onclick="useIce()">❄️ CONGELAR!</button>
+
     <div id="boss-ui"><div id="boss-hp"></div></div>
     <canvas id="gameCanvas"></canvas>
 
@@ -106,7 +118,7 @@ let shopUpgrades = JSON.parse(localStorage.getItem('sg_upgrades_save')) || { shi
 let score = 0, level = 1, lives = 3, gameOver = false, gameStarted = false, isPaused = false;
 let frameCount = 0, sessionCoins = 0, keys = {};
 let hasSpoken = false;
-let iceEffectTimer = 0;
+let iceEffectTimer = 0, hasIceStock = false;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -156,24 +168,47 @@ function togglePause() {
     document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none';
 }
 
+function useIce() {
+    if (hasIceStock && !isPaused && gameStarted) {
+        iceEffectTimer = 180; 
+        hasIceStock = false;
+        document.getElementById('ice-button').style.display = 'none';
+        playSound(300, 0.4, 'sine');
+    }
+}
+
 class PowerUp {
     constructor(type) {
-        this.type = type; // 'weapon' ou 'ice'
-        this.w = 40; this.h = 40;
+        this.type = type;
+        this.w = 45; this.h = 45;
         this.x = Math.random() * (canvas.width - this.w);
         this.y = -this.h;
-        this.speed = 2;
+        this.speed = 2.5;
         this.color = type === 'weapon' ? '#f0f' : '#0ff';
-        this.label = type === 'weapon' ? 'UP' : 'ICE';
+        this.emoji = type === 'weapon' ? '🚀' : '❄️';
     }
     draw() {
+        ctx.save();
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.w, this.h);
+        // Desenha card arredondado
+        ctx.beginPath();
+        const r = 10;
+        ctx.moveTo(this.x + r, this.y);
+        ctx.arcTo(this.x + this.w, this.y, this.x + this.w, this.y + this.h, r);
+        ctx.arcTo(this.x + this.w, this.y + this.h, this.x, this.y + this.h, r);
+        ctx.arcTo(this.x, this.y + this.h, this.x, this.y, r);
+        ctx.arcTo(this.x, this.y, this.x + this.w, this.y, r);
+        ctx.closePath();
+        ctx.fill();
         ctx.strokeStyle = '#fff';
-        ctx.strokeRect(this.x, this.y, this.w, this.h);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText(this.label, this.x + 10, this.y + 25);
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.emoji, this.x + this.w/2, this.y + 32);
+        ctx.restore();
     }
 }
 
@@ -196,6 +231,7 @@ function triggerGameOver(msg) {
     totalCoins += sessionCoins;
     localStorage.setItem('sg_coins_save', totalCoins);
     document.getElementById('game-over').style.display = 'flex';
+    document.getElementById('ice-button').style.display = 'none';
     document.getElementById('over-msg').innerText = msg;
 }
 
@@ -223,7 +259,6 @@ function update() {
     }
     player.fireTimer--;
 
-    // Lógica de spawn de cards antes do Boss (Boss aparece a cada frame múltiplo de 1000)
     let nextBossFrame = (Math.floor(frameCount / 1000) + 1) * 1000;
     if (frameCount === nextBossFrame - 200) powerups.push(new PowerUp('weapon'));
     if (frameCount === nextBossFrame - 150) powerups.push(new PowerUp('weapon'));
@@ -243,8 +278,9 @@ function update() {
                 player.gunMode++;
                 playSound(800, 0.2);
             } else {
-                iceEffectTimer = 180; // 3 segundos
-                playSound(300, 0.3);
+                hasIceStock = true;
+                document.getElementById('ice-button').style.display = 'block';
+                playSound(600, 0.2, 'triangle');
             }
             powerups.splice(i, 1);
         }
@@ -287,8 +323,11 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (iceEffectTimer > 0) {
-        ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 20px Arial";
+        ctx.fillText("TEMPO CONGELADO!", canvas.width/2 - 100, 120);
     }
     if (player.invul % 10 < 5) ctx.drawImage(imgPlayerV1, player.x, player.y, player.w, player.h);
     enemies.forEach(e => { ctx.drawImage(e.isBoss ? imgBoss : imgMeteor, e.x, e.y, e.size, e.size); });
@@ -332,7 +371,11 @@ function buyUpgrade(type, price) {
     } else alert("💎 Insuficiente!");
 }
 
-window.addEventListener('keydown', e => { if (e.code === 'KeyP' || e.code === 'Escape') togglePause(); keys[e.code] = true; });
+window.addEventListener('keydown', e => { 
+    if (e.code === 'KeyP' || e.code === 'Escape') togglePause(); 
+    if (e.code === 'Space') useIce();
+    keys[e.code] = true; 
+});
 window.addEventListener('keyup', e => keys[e.code] = false);
 canvas.addEventListener('touchmove', e => { if(gameStarted && !isPaused) { player.x = e.touches[0].clientX - player.w/2; player.y = e.touches[0].clientY - player.h/2; } e.preventDefault(); }, {passive: false});
 draw();
