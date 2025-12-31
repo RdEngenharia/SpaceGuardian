@@ -8,53 +8,50 @@
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', Courier, monospace; overflow: hidden; touch-action: none; }
         canvas { display: block; }
         
-        #ui { position: absolute; top: 15px; left: 15px; pointer-events: none; width: calc(100% - 30px); display: none; justify-content: space-between; font-weight: bold; font-size: 14px; text-transform: uppercase; z-index: 5; }
-        .stat-box { text-shadow: 2px 2px #000; border-left: 4px solid #f00; padding-left: 10px; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
         
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 100; text-align: center; }
+        /* Nova Tela de Intro */
+        #intro-screen { background: url('assets/intro_bg.png') center/cover; }
+        .intro-box { background: rgba(0, 0, 0, 0.8); padding: 30px; border: 2px solid #0ff; max-width: 600px; border-radius: 10px; box-shadow: 0 0 20px #0ff; }
+        .intro-text { font-size: 18px; line-height: 1.6; color: #0ff; margin-bottom: 25px; text-transform: uppercase; }
+
         h1 { font-size: 42px; color: #0ff; text-shadow: 0 0 20px #0ff; margin-bottom: 20px; }
         .btn-menu { padding: 15px 30px; margin: 10px; font-size: 18px; cursor: pointer; background: #0ff; border: none; font-weight: bold; width: 260px; font-family: 'Courier New'; transition: 0.2s; }
         .btn-menu:hover { background: #fff; box-shadow: 0 0 15px #0ff; }
         
+        #ui { position: absolute; top: 15px; left: 15px; pointer-events: none; width: calc(100% - 30px); display: none; justify-content: space-between; font-weight: bold; font-size: 14px; text-transform: uppercase; z-index: 5; }
+        .stat-box { text-shadow: 2px 2px #000; border-left: 4px solid #f00; padding-left: 10px; }
         #shop-coins { color: #ff0; font-size: 20px; margin-bottom: 20px; }
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; max-height: 50vh; overflow-y: auto; padding: 10px; }
         .shop-item { background: #111; border: 1px solid #0ff; padding: 10px; font-size: 12px; }
-
-        #freeze-btn { 
-            position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
-            width: 80px; height: 80px; border-radius: 50%; background: #0088ff;
-            border: 3px solid #fff; color: white; font-weight: bold;
-            display: none; align-items: center; justify-content: center; z-index: 50;
-            box-shadow: 0 0 20px #0088ff; cursor: pointer; text-align: center; font-size: 11px;
-        }
-
         #boss-ui { position: absolute; top: 180px; left: 50%; transform: translateX(-50%); width: 200px; height: 10px; border: 2px solid #fff; display: none; z-index: 5; }
         #boss-hp { width: 100%; height: 100%; background: #f00; transition: width 0.2s; }
-
-        #msg-popup {
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            color: #fff; text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
-            font-size: 28px; font-weight: bold; text-align: center;
-            z-index: 200; pointer-events: none; display: none;
-            animation: messageAnim 2.5s ease-out forwards;
-        }
-
-        @keyframes messageAnim {
-            0% { opacity: 0; transform: translate(-50%, -40%) scale(0.5); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -60%) scale(1.2); }
-        }
+        #msg-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #fff; text-shadow: 0 0 10px #0ff, 0 0 20px #0ff; font-size: 28px; font-weight: bold; text-align: center; z-index: 200; pointer-events: none; display: none; animation: messageAnim 2.5s ease-out forwards; }
+        
+        @keyframes messageAnim { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -60%) scale(1.2); } }
     </style>
 </head>
 <body>
 
     <div id="msg-popup"></div>
 
-    <div id="start-screen" class="overlay">
+    <div id="intro-screen" class="overlay">
+        <div class="intro-box">
+            <h1>ALERTA TERRA!</h1>
+            <p class="intro-text">
+                O ano é 2025. Uma chuva de meteoros gigantes ameaça extinguir a vida em nosso planeta. 
+                Como último Guardião Espacial, você é nossa única esperança. 
+                Destrua as ameaças, colete diamantes para melhorar sua nave e não deixe NADA atingir a atmosfera.
+                <br><br><strong>Contamos com você, piloto!</strong>
+            </p>
+            <button class="btn-menu" onclick="closeIntro()">ESTOU PRONTO!</button>
+        </div>
+    </div>
+
+    <div id="start-screen" class="overlay" style="display:none">
         <h1>SPACE GUARDIAN</h1>
-        <button class="btn-menu" onclick="startGame()">JOGAR</button>
-        <button class="btn-menu" onclick="showShop()">LOJA DE UPGRADES</button>
+        <button class="btn-menu" onclick="startGame()">INICIAR DEFESA</button>
+        <button class="btn-menu" onclick="showShop()">HANGAR</button>
         <button class="btn-menu" onclick="showHelp()">REGRAS</button>
     </div>
 
@@ -64,8 +61,8 @@
         <div class="shop-grid">
             <div class="shop-item">COMPRAR ESCUDO<br><button onclick="buyUpgrade('shield', 50)">50 💎</button></div>
             <div class="shop-item">TIRO RÁPIDO (PERM)<br><button onclick="buyUpgrade('speed', 100)">100 💎</button></div>
-            <div class="shop-item">NAVE ELITE (2x DANO)<br><button id="btn-ship2" onclick="buyUpgrade('ship2', 500)">500 💎</button></div>
-            <div class="shop-item">NAVE MESTRE (3x DANO)<br><button id="btn-ship3" onclick="buyUpgrade('ship3', 1200)">1200 💎</button></div>
+            <div class="shop-item">NAVE ELITE (2x DANO)<br><button onclick="buyUpgrade('ship2', 500)">500 💎</button></div>
+            <div class="shop-item">NAVE MESTRE (3x DANO)<br><button onclick="buyUpgrade('ship3', 1200)">1200 💎</button></div>
         </div>
         <button class="btn-menu" style="background:#f0f" onclick="hideShop()">VOLTAR</button>
     </div>
@@ -75,20 +72,13 @@
         <p>🚀 MOVIMENTAÇÃO: Arraste ou use setas</p>
         <p>🛡️ ESCUDO: Protege contra 1 impacto.</p>
         <p>❄️ GELO: Congela inimigos temporariamente.</p>
-        <p>👥 CLONE: Atira em dobro por tempo limitado.</p>
+        <p>👾 BOSS: Meteoros gigantes não somem ao bater em você!</p>
         <button class="btn-menu" onclick="hideHelp()">SAIR</button>
-    </div>
-
-    <div id="pause-screen" class="overlay" style="display:none">
-        <h1>PAUSADO</h1>
-        <button class="btn-menu" onclick="togglePause()">CONTINUAR</button>
-        <button class="btn-menu" style="background:#ff0; color:#000" onclick="showShop()">IR PARA LOJA</button>
     </div>
 
     <div id="game-over" class="overlay" style="display:none">
         <h1 id="over-title" style="color:#f00">FIM DE MISSÃO</h1>
-        <p id="over-msg">O Planeta foi destruído!</p>
-        <p id="final-stats">Pontos: 0</p>
+        <p id="over-msg"></p>
         <button class="btn-menu" onclick="location.reload()">REINICIAR</button>
     </div>
 
@@ -97,21 +87,19 @@
             VIDAS: <span id="lives">3</span> | LEVEL: <span id="game-level">1</span><br>
             💎 <span id="current-coins">0</span> | ESCUDO: <span id="shield-status">OFF</span>
         </div>
-        <div class="stat-box" style="text-align: right; border-left: none; border-right: 4px solid #0ff; padding-right: 10px;">
+        <div class="stat-box" style="text-align: right; border-right: 4px solid #0ff; padding-right: 10px; border-left:none;">
             SCORE:<br><span id="score">0</span>
         </div>
     </div>
 
     <div id="boss-ui"><div id="boss-hp"></div></div>
-    <div id="freeze-btn" onclick="activateFreeze()">CONGELAR<br>(F)</div>
-
     <canvas id="gameCanvas"></canvas>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// CONFIGURAÇÃO DOS ASSETS (IMAGENS)
+// IMAGENS
 const imgPlayerV1 = new Image(); imgPlayerV1.src = 'assets/player_ship.png';
 const imgPlayerV2 = new Image(); imgPlayerV2.src = 'assets/player_ship_v2.png';
 const imgPlayerV3 = new Image(); imgPlayerV3.src = 'assets/player_ship_v3.png';
@@ -125,16 +113,6 @@ let score = 0, level = 1, lives = 3, gameOver = false, isPaused = false, gameSta
 let frameCount = 0, shakeAmount = 0, sessionCoins = 0, victoryFlash = 0;
 let freezeTimer = 0, hasFreezeCharge = false, cloneTimer = 0;
 
-const bossVictoryQuotes = [
-    "MISSÃO CUMPRIDA! O PLANETA ESTÁ SALVO!",
-    "ALVO GIGANTE NEUTRALIZADO!",
-    "EXCELENTE TRABALHO, GUARDIÃO!",
-    "O METEORO VIROU POEIRA CÓSMICA!",
-    "HERÓI DA TERRA! AMEAÇA ELIMINADA!",
-    "VOCÊ É UMA LENDA DO ESPAÇO!",
-    "IMPACTO EVITADO COM SUCESSO!"
-];
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -147,10 +125,10 @@ const player = {
     gunLevel: 1, 
     hasShield: shopUpgrades.shield,
     damage: shopUpgrades.shipLevel || 1,
-    currentImg: imgPlayerV1
+    currentImg: imgPlayerV1,
+    invul: 0 // Tempo de invulnerabilidade após bater
 };
 
-// Atualiza imagem baseada no nível da nave
 function updatePlayerStats() {
     if (shopUpgrades.shipLevel === 2) { player.currentImg = imgPlayerV2; player.damage = 2; }
     if (shopUpgrades.shipLevel === 3) { player.currentImg = imgPlayerV3; player.damage = 3; }
@@ -160,16 +138,9 @@ updatePlayerStats();
 let bullets = [], enemies = [], powerups = [], stars = [];
 const keys = {};
 
-for(let i=0; i<80; i++) {
-    stars.push({
-        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-        size: Math.random() * 2, speed: Math.random() * 0.5 + 0.2, bright: Math.random()
-    });
-}
-
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(freq, duration, type='triangle') {
-    if (isPaused) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = type;
@@ -178,21 +149,6 @@ function playSound(freq, duration, type='triangle') {
     gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
     osc.connect(gain); gain.connect(audioCtx.destination);
     osc.start(); osc.stop(audioCtx.currentTime + duration);
-}
-
-class PowerUp {
-    constructor(x, y, type) {
-        this.x = x; this.y = y; this.size = 30; this.type = type;
-    }
-    update() { this.y += 2; }
-    draw() {
-        ctx.fillStyle = this.type === 'life' ? "#f00" : (this.type === 'gun' ? "#0f0" : (this.type === 'clone' ? "#ff0" : "#00f"));
-        ctx.fillRect(this.x, this.y, this.size, this.size);
-        ctx.strokeStyle = "#fff"; ctx.strokeRect(this.x, this.y, this.size, this.size);
-        ctx.fillStyle = "#fff"; ctx.font = "14px Arial"; ctx.textAlign = "center";
-        let txt = this.type === 'life' ? "➕" : (this.type === 'gun' ? "💎" : (this.type === 'clone' ? "👥" : "❄️"));
-        ctx.fillText(txt, this.x + 15, this.y + 20);
-    }
 }
 
 class Enemy {
@@ -206,22 +162,7 @@ class Enemy {
         this.speed = isBoss ? 0.6 : (1.4 + (level * 0.35));
         this.rotation = 0;
         this.rotSpeed = (Math.random() - 0.5) * 0.04;
-        this.color = isBoss ? "#a0f" : "#643";
-        this.points = [];
-        for(let i=0; i<8; i++) {
-            const ang = (i/8)*Math.PI*2;
-            const dist = (this.size/2)*(0.8+Math.random()*0.4);
-            this.points.push({x: Math.cos(ang)*dist, y: Math.sin(ang)*dist});
-        }
     }
-}
-
-function showVictoryMessage() {
-    const el = document.getElementById('msg-popup');
-    el.innerText = bossVictoryQuotes[Math.floor(Math.random() * bossVictoryQuotes.length)];
-    el.style.display = 'block';
-    victoryFlash = 20;
-    setTimeout(() => { el.style.display = 'none'; }, 2500);
 }
 
 function triggerGameOver(msg) {
@@ -230,114 +171,81 @@ function triggerGameOver(msg) {
     localStorage.setItem('sg_coins_save', totalCoins);
     document.getElementById('game-over').style.display = 'flex';
     document.getElementById('over-msg').innerText = msg;
-    document.getElementById('final-stats').innerText = "Score: " + score;
 }
 
 function update() {
     if (!gameStarted || isPaused || gameOver) return;
     frameCount++;
-    if (freezeTimer > 0) freezeTimer--;
-    if (victoryFlash > 0) victoryFlash--;
-    if (cloneTimer > 0) cloneTimer--;
+    if (player.invul > 0) player.invul--;
 
+    // Movimentação
     if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
     if (keys['ArrowRight'] && player.x < canvas.width - player.w) player.x += player.speed;
-    if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
-    if (keys['ArrowDown'] && player.y < canvas.height - player.h) player.y += player.speed;
 
+    // Tiro
     if (player.fireTimer <= 0) {
-        let startX = (player.x + player.w/2) - ((player.gunLevel-1)*8);
-        for(let i=0; i<player.gunLevel; i++) {
-            bullets.push({ x: startX + (i*16), y: player.y });
-        }
-        if (cloneTimer > 0) {
-            bullets.push({ x: player.x - 30, y: player.y + 10 });
-            bullets.push({ x: player.x + player.w + 30, y: player.y + 10 });
-        }
+        bullets.push({ x: player.x + player.w/2, y: player.y });
         player.fireTimer = player.fireRate;
         playSound(400, 0.1);
     }
     player.fireTimer--;
 
-    if (frameCount % 60 === 0 && freezeTimer <= 0) {
+    // Spawn
+    if (frameCount % 60 === 0) {
         if (level % 3 === 0 && !enemies.some(e => e.isBoss)) {
             enemies.push(new Enemy(true));
             document.getElementById('boss-ui').style.display = 'block';
-            document.getElementById('boss-hp').style.width = "100%";
         } else if (level % 3 !== 0) {
             enemies.push(new Enemy());
         }
     }
 
     enemies.forEach((e, i) => {
-        if (freezeTimer <= 0) {
-            e.y += e.speed;
-            e.rotation += e.rotSpeed;
-            if (e.isBoss) {
-                let targetX = player.x - (e.size/2) + 22;
-                if (e.x < targetX) e.x += 0.8;
-                else if (e.x > targetX) e.x -= 0.8;
-            }
-        }
-        
+        e.y += e.speed;
+        e.rotation += e.rotSpeed;
+
         if (e.y > canvas.height) {
-            if (e.isBoss) triggerGameOver("O Meteoro Gigante destruiu o planeta!");
-            else { enemies.splice(i, 1); return; }
+            triggerGameOver("O IMPACTO NO PLANETA FOI FATAL!");
         }
 
+        // Colisão Bala
         bullets.forEach((b, bi) => {
             if (b.x > e.x && b.x < e.x + e.size && b.y > e.y && b.y < e.y + e.size) {
-                e.hp -= player.damage; // Aplicando dano da nave comprada
+                e.hp -= player.damage;
                 bullets.splice(bi, 1);
                 if (e.isBoss) document.getElementById('boss-hp').style.width = (e.hp/e.maxHp*100) + "%";
                 if (e.hp <= 0) {
-                    playSound(120, 0.2, 'sawtooth');
-                    if(e.isBoss) {
-                        showVictoryMessage();
-                        document.getElementById('boss-ui').style.display = 'none';
-                    }
+                    if(e.isBoss) document.getElementById('boss-ui').style.display = 'none';
                     sessionCoins += e.isBoss ? 50 : 2;
                     score += e.isBoss ? 500 : 10;
                     document.getElementById('current-coins').innerText = sessionCoins;
-                    document.getElementById('score').innerText = score;
-                    
-                    let r = Math.random();
-                    if (r > 0.94) powerups.push(new PowerUp(e.x, e.y, 'life'));
-                    else if (r > 0.88) powerups.push(new PowerUp(e.x, e.y, 'gun'));
-                    else if (r > 0.84) powerups.push(new PowerUp(e.x, e.y, 'freeze'));
-                    else if (r > 0.80) powerups.push(new PowerUp(e.x, e.y, 'clone'));
-                    
                     enemies.splice(i, 1);
+                    playSound(150, 0.2, 'sawtooth');
                 }
             }
         });
 
-        if (player.x < e.x + e.size && player.x + player.w > e.x && player.y < e.y + e.size && player.y + player.h > e.y) {
+        // Colisão Player (AJUSTADO CIRURGICAMENTE)
+        if (player.invul <= 0 && player.x < e.x + e.size && player.x + player.w > e.x && player.y < e.y + e.size && player.y + player.h > e.y) {
             if (player.hasShield) {
                 player.hasShield = false;
-                document.getElementById('shield-status').innerText = "OFF";
-                if(!e.isBoss) enemies.splice(i, 1); // Somente meteoros comuns somem com escudo
-                shakeAmount = 15;
+                player.invul = 60;
+                if(!e.isBoss) enemies.splice(i, 1);
             } else {
                 lives--;
-                player.gunLevel = Math.max(1, player.gunLevel - 1);
+                player.invul = 100; // Tempo de respiro
                 document.getElementById('lives').innerText = lives;
-                if(!e.isBoss) enemies.splice(i, 1); // Somente meteoros comuns somem ao colidir
                 shakeAmount = 25;
-                if (lives <= 0) triggerGameOver("Sua nave foi destruída!");
-            }
-        }
-    });
+                
+                if (e.isBoss) {
+                    e.y -= 150; // Joga o Boss pra cima para não matar o player seguidamente
+                } else {
+                    enemies.splice(i, 1);
+                }
 
-    powerups.forEach((p, i) => {
-        p.update();
-        if (player.x < p.x + p.size && player.x + player.w > p.x && player.y < p.y + p.size && player.y + player.h > p.y) {
-            if (p.type === 'life') { lives++; document.getElementById('lives').innerText = lives; }
-            if (p.type === 'gun') { player.gunLevel = Math.min(4, player.gunLevel + 1); }
-            if (p.type === 'freeze') { hasFreezeCharge = true; document.getElementById('freeze-btn').style.display = 'flex'; }
-            if (p.type === 'clone') { cloneTimer = 600; }
-            powerups.splice(i, 1);
-            playSound(600, 0.2, 'sine');
+                if (lives <= 0) triggerGameOver("SUA NAVE FOI PULVERIZADA!");
+                else playSound(100, 0.5, 'sawtooth');
+            }
         }
     });
 
@@ -345,85 +253,34 @@ function update() {
     if (frameCount % 1200 === 0) { level++; document.getElementById('game-level').innerText = level; }
 }
 
-function drawPlayer() {
-    ctx.save();
-    if (shakeAmount > 0) { 
-        ctx.translate(Math.random()*shakeAmount - shakeAmount/2, Math.random()*shakeAmount - shakeAmount/2); 
-        shakeAmount *= 0.9; 
-    }
-    
-    const drawShip = (x, y, scale = 1) => {
-        if (player.currentImg.complete && player.currentImg.naturalWidth !== 0) {
-            ctx.drawImage(player.currentImg, x, y, player.w * scale, player.h * scale);
-        } else {
-            ctx.fillStyle = shopUpgrades.shipLevel === 3 ? "#f0f" : (shopUpgrades.shipLevel === 2 ? "#0ff" : "#ddd"); 
-            ctx.beginPath(); 
-            ctx.moveTo(x+22*scale, y); ctx.lineTo(x, y+45*scale); ctx.lineTo(x+10*scale, y+40*scale); 
-            ctx.lineTo(x+35*scale, y+40*scale); ctx.lineTo(x+45*scale, y+45*scale); ctx.closePath(); ctx.fill();
-        }
-    };
-
-    drawShip(player.x, player.y);
-
-    if (cloneTimer > 0) {
-        ctx.globalAlpha = 0.6;
-        drawShip(player.x - 40, player.y + 20, 0.7);
-        drawShip(player.x + 40, player.y + 20, 0.7);
-        ctx.globalAlpha = 1.0;
-    }
-
-    if (player.hasShield) { 
-        ctx.strokeStyle = "#0ff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(player.x+22, player.y+25, 45, 0, Math.PI*2); ctx.stroke(); 
-        document.getElementById('shield-status').innerText = "ON";
-    }
-    ctx.restore();
-}
-
 function draw() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    stars.forEach(s => {
-        s.y += s.speed;
-        if (s.y > canvas.height) s.y = 0;
-        let b = Math.abs(Math.sin(frameCount * 0.02 + s.bright)) * 0.8 + 0.2;
-        ctx.fillStyle = `rgba(255, 255, 255, ${b})`;
-        ctx.fillRect(s.x, s.y, s.size, s.size);
-    });
+    
+    // Player com efeito de piscar se estiver invulnerável
+    if (player.invul % 10 < 5) {
+        if (player.currentImg.complete) ctx.drawImage(player.currentImg, player.x, player.y, player.w, player.h);
+    }
 
     enemies.forEach(e => {
-        ctx.save(); 
+        ctx.save();
         ctx.translate(e.x+e.size/2, e.y+e.size/2);
         ctx.rotate(e.rotation);
-        
-        const currentImg = e.isBoss ? imgBoss : imgMeteor;
-        
-        if (currentImg.complete && currentImg.naturalWidth !== 0) {
-            ctx.drawImage(currentImg, -e.size/2, -e.size/2, e.size, e.size);
-            if (freezeTimer > 0) {
-                ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
-                ctx.fillRect(-e.size/2, -e.size/2, e.size, e.size);
-            }
-        } else {
-            ctx.fillStyle = freezeTimer > 0 ? "#0ff" : e.color;
-            ctx.beginPath(); 
-            e.points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-            ctx.closePath(); ctx.fill(); 
-        }
+        ctx.drawImage(e.isBoss ? imgBoss : imgMeteor, -e.size/2, -e.size/2, e.size, e.size);
         ctx.restore();
     });
 
-    powerups.forEach(p => p.draw());
-    drawPlayer();
-    
     ctx.fillStyle = "#fff";
     bullets.forEach(b => ctx.fillRect(b.x-2, b.y, 4, 15));
 
-    if (freezeTimer > 0) { ctx.fillStyle = "rgba(0,255,255,0.15)"; ctx.fillRect(0,0,canvas.width,canvas.height); }
-    if (victoryFlash > 0) { ctx.fillStyle = `rgba(0,255,255,${victoryFlash/40})`; ctx.fillRect(0,0,canvas.width,canvas.height); }
-
     update();
     requestAnimationFrame(draw);
+}
+
+function closeIntro() {
+    audioCtx.resume(); // Ativa o som no primeiro clique
+    document.getElementById('intro-screen').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'flex';
 }
 
 function startGame() { 
@@ -434,86 +291,41 @@ function startGame() {
 
 function showShop() { 
     document.getElementById('start-screen').style.display = 'none'; 
-    document.getElementById('pause-screen').style.display = 'none';
     document.getElementById('shop-screen').style.display = 'flex'; 
     document.getElementById('shop-coins').innerText = "MOEDAS: " + (totalCoins + sessionCoins); 
 }
 
 function hideShop() { 
     document.getElementById('shop-screen').style.display = 'none'; 
-    if (isPaused) document.getElementById('pause-screen').style.display = 'flex';
-    else document.getElementById('start-screen').style.display = 'flex'; 
+    document.getElementById('start-screen').style.display = 'flex'; 
 }
-
-function showHelp() { document.getElementById('help-screen').style.display = 'flex'; }
-function hideHelp() { document.getElementById('help-screen').style.display = 'none'; }
-function togglePause() { if (!gameStarted || gameOver) return; isPaused = !isPaused; document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none'; }
 
 function buyUpgrade(type, price) {
     let currentTotal = totalCoins + sessionCoins;
     if (currentTotal >= price) {
         if (sessionCoins >= price) sessionCoins -= price;
-        else { let resto = price - sessionCoins; sessionCoins = 0; totalCoins -= resto; }
+        else { totalCoins -= (price - sessionCoins); sessionCoins = 0; }
         
         if (type === 'shield') player.hasShield = true;
         if (type === 'speed') { shopUpgrades.fast = true; player.fireRate = 9; }
-        if (type === 'ship2') { shopUpgrades.shipLevel = 2; updatePlayerStats(); }
-        if (type === 'ship3') { shopUpgrades.shipLevel = 3; updatePlayerStats(); }
+        if (type.startsWith('ship')) { shopUpgrades.shipLevel = parseInt(type.replace('ship','')); updatePlayerStats(); }
 
         localStorage.setItem('sg_coins_save', totalCoins);
         localStorage.setItem('sg_upgrades_save', JSON.stringify(shopUpgrades));
-        document.getElementById('shop-coins').innerText = "MOEDAS: " + (totalCoins + sessionCoins);
-        document.getElementById('current-coins').innerText = sessionCoins;
         alert("Melhoria adquirida!");
+        showShop();
     } else alert("Moedas insuficientes!");
 }
 
-function activateFreeze() {
-    if (hasFreezeCharge) {
-        freezeTimer = 240;
-        hasFreezeCharge = false;
-        document.getElementById('freeze-btn').style.display = 'none';
-        playSound(200, 0.5, 'sine');
-    }
-}
-
-window.addEventListener('keydown', e => {
-    keys[e.code] = true;
-    if (e.code === 'Space') togglePause();
-    if (e.code === 'KeyF') activateFreeze();
-});
+window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
-
 canvas.addEventListener('touchmove', e => {
-    if (!gameStarted || isPaused) return;
-    let touch = e.touches[0];
-    player.x = touch.clientX - player.w/2;
-    player.y = touch.clientY - player.h/2;
+    if (!gameStarted) return;
+    player.x = e.touches[0].clientX - player.w/2;
     e.preventDefault();
 }, {passive: false});
 
 draw();
-
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW registrado'))
-            .catch(err => console.log('Erro SW', err));
-    });
-}
-
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    if (player.x > canvas.width) player.x = canvas.width - player.w;
-    stars = [];
-    for(let i=0; i<80; i++) {
-        stars.push({
-            x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-            size: Math.random() * 2, speed: Math.random() * 0.5 + 0.2, bright: Math.random()
-        });
-    }
-});
 </script>
 </body>
 </html>
