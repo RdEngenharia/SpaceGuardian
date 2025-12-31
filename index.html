@@ -461,20 +461,40 @@ canvas.addEventListener('touchmove', e => {
 }, {passive: false});
 
 draw();
-// --- AJUSTE FINAL DE REDIMENSIONAMENTO ---
+// --- INÍCIO DO BLOCO DE FECHAMENTO ---
+// 2. Registro do Service Worker (PWA)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker registrado com sucesso!', reg.scope))
+            .catch(err => console.log('Falha ao registrar o Service Worker:', err));
+    });
+}
+
+// 3. Ajuste de redimensionamento da tela (Responsividade)
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    // Reposiciona o jogador se ele ficar fora da tela ao girar o celular
+    
+    // Mantém o jogador dentro da área visível após redimensionar
     if (player.x > canvas.width) player.x = canvas.width - player.w;
     if (player.y > canvas.height) player.y = canvas.height - player.h;
+    
+    // Recria estrelas para preencher o novo tamanho de tela
+    stars = [];
+    for(let i=0; i<80; i++) {
+        stars.push({
+            x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+            size: Math.random() * 2, speed: Math.random() * 0.5 + 0.2, bright: Math.random()
+        });
+    }
 });
 
-// Garante que o jogo comece com as imagens pré-carregadas
-window.onload = () => {
-    console.log("Space Guardian pronto. Assets carregados da pasta /assets");
-};
+// 4. Log de confirmação no console
+console.log("Space Guardian: Sistema de Assets e PWA carregados.");
+
 </script>
 </body>
 </html>
+
 
