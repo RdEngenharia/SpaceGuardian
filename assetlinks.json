@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.rdengenharia.twa",
+        "sha256_cert_fingerprints": ["94:42:29:BB:D1:55:B5:42:64:92:95:6D:30:E5:AE:59:8B:88:44:EB:77:DA:FF:35:14:F3:D2:AB:B2:8F:20:D0"]
+      }
+    }]
