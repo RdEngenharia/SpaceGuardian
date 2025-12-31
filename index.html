@@ -109,6 +109,11 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// CONFIGURAÇÃO DOS ASSETS (IMAGENS)
+const imgPlayer = new Image(); imgPlayer.src = 'assets/player_ship.png';
+const imgMeteor = new Image(); imgMeteor.src = 'assets/meteor.png';
+const imgBoss = new Image(); imgBoss.src = 'assets/boss_meteor.png';
+
 let totalCoins = parseInt(localStorage.getItem('sg_coins_save')) || 0;
 let shopUpgrades = JSON.parse(localStorage.getItem('sg_upgrades_save')) || { shield: false, fast: false };
 
@@ -273,7 +278,10 @@ function update() {
                 if (e.isBoss) document.getElementById('boss-hp').style.width = (e.hp/e.maxHp*100) + "%";
                 if (e.hp <= 0) {
                     playSound(120, 0.2, 'sawtooth');
-                    if(e.isBoss) showVictoryMessage();
+                    if(e.isBoss) {
+                        showVictoryMessage();
+                        document.getElementById('boss-ui').style.display = 'none';
+                    }
                     sessionCoins += e.isBoss ? 50 : 2;
                     score += e.isBoss ? 500 : 10;
                     document.getElementById('current-coins').innerText = sessionCoins;
@@ -286,7 +294,6 @@ function update() {
                     else if (r > 0.80) powerups.push(new PowerUp(e.x, e.y, 'clone'));
                     
                     enemies.splice(i, 1);
-                    if (e.isBoss) document.getElementById('boss-ui').style.display = 'none';
                 }
             }
         });
@@ -332,21 +339,13 @@ function drawPlayer() {
     }
     
     const drawShip = (x, y, scale = 1) => {
-        // Efeito de Fogo (Propulsão)
-        if (frameCount % 4 > 1) {
-            ctx.fillStyle = "#f80"; 
-            ctx.beginPath(); 
-            ctx.moveTo(x + 15 * scale, y + 45 * scale); 
-            ctx.lineTo(x + 22 * scale, y + 65 * scale); 
-            ctx.lineTo(x + 30 * scale, y + 45 * scale); 
-            ctx.fill();
+        if (imgPlayer.complete && imgPlayer.naturalWidth !== 0) {
+            ctx.drawImage(imgPlayer, x, y, player.w * scale, player.h * scale);
+        } else {
+            ctx.fillStyle = "#ddd"; ctx.beginPath(); 
+            ctx.moveTo(x+22*scale, y); ctx.lineTo(x, y+45*scale); ctx.lineTo(x+10*scale, y+40*scale); 
+            ctx.lineTo(x+35*scale, y+40*scale); ctx.lineTo(x+45*scale, y+45*scale); ctx.closePath(); ctx.fill();
         }
-
-        // Corpo da Nave
-        ctx.fillStyle = "#ddd"; ctx.beginPath(); 
-        ctx.moveTo(x+22*scale, y); ctx.lineTo(x, y+45*scale); ctx.lineTo(x+10*scale, y+40*scale); 
-        ctx.lineTo(x+35*scale, y+40*scale); ctx.lineTo(x+45*scale, y+45*scale); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = "#0ff"; ctx.beginPath(); ctx.arc(x+22*scale, y+25*scale, 6*scale, 0, Math.PI*2); ctx.fill();
     };
 
     drawShip(player.x, player.y);
@@ -381,10 +380,21 @@ function draw() {
         ctx.save(); 
         ctx.translate(e.x+e.size/2, e.y+e.size/2);
         ctx.rotate(e.rotation);
-        ctx.fillStyle = freezeTimer > 0 ? "#0ff" : e.color;
-        ctx.beginPath(); 
-        e.points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-        ctx.closePath(); ctx.fill(); 
+        
+        const currentImg = e.isBoss ? imgBoss : imgMeteor;
+        
+        if (currentImg.complete && currentImg.naturalWidth !== 0) {
+            ctx.drawImage(currentImg, -e.size/2, -e.size/2, e.size, e.size);
+            if (freezeTimer > 0) {
+                ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
+                ctx.fillRect(-e.size/2, -e.size/2, e.size, e.size);
+            }
+        } else {
+            ctx.fillStyle = freezeTimer > 0 ? "#0ff" : e.color;
+            ctx.beginPath(); 
+            e.points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.closePath(); ctx.fill(); 
+        }
         ctx.restore();
     });
 
@@ -406,17 +416,20 @@ function startGame() {
     document.getElementById('ui').style.display = 'flex'; 
     gameStarted = true; 
 }
+
 function showShop() { 
     document.getElementById('start-screen').style.display = 'none'; 
     document.getElementById('pause-screen').style.display = 'none';
     document.getElementById('shop-screen').style.display = 'flex'; 
     document.getElementById('shop-coins').innerText = "MOEDAS: " + (totalCoins + sessionCoins); 
 }
+
 function hideShop() { 
     document.getElementById('shop-screen').style.display = 'none'; 
     if (isPaused) document.getElementById('pause-screen').style.display = 'flex';
     else document.getElementById('start-screen').style.display = 'flex'; 
 }
+
 function showHelp() { document.getElementById('help-screen').style.display = 'flex'; }
 function hideHelp() { document.getElementById('help-screen').style.display = 'none'; }
 function togglePause() { if (!gameStarted || gameOver) return; isPaused = !isPaused; document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none'; }
@@ -460,27 +473,23 @@ canvas.addEventListener('touchmove', e => {
     e.preventDefault();
 }, {passive: false});
 
+// Inicia o Loop
 draw();
-// --- INÍCIO DO BLOCO DE FECHAMENTO ---
-// 2. Registro do Service Worker (PWA)
+
+// Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker registrado com sucesso!', reg.scope))
-            .catch(err => console.log('Falha ao registrar o Service Worker:', err));
+            .then(reg => console.log('SW registrado'))
+            .catch(err => console.log('Erro SW', err));
     });
 }
 
-// 3. Ajuste de redimensionamento da tela (Responsividade)
+// Redimensionamento
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    
-    // Mantém o jogador dentro da área visível após redimensionar
     if (player.x > canvas.width) player.x = canvas.width - player.w;
-    if (player.y > canvas.height) player.y = canvas.height - player.h;
-    
-    // Recria estrelas para preencher o novo tamanho de tela
     stars = [];
     for(let i=0; i<80; i++) {
         stars.push({
@@ -489,12 +498,6 @@ window.addEventListener('resize', () => {
         });
     }
 });
-
-// 4. Log de confirmação no console
-console.log("Space Guardian: Sistema de Assets e PWA carregados.");
-
 </script>
 </body>
 </html>
-
-
